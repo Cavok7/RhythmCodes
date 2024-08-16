@@ -7,39 +7,31 @@
  * https://github.com/MHeironimus/ArduinoJoystickLibrary/
  * mon's Arduino-HID-Lighting
  * https://github.com/mon/Arduino-HID-Lighting
+ * Bounce2
+ * https://github.com/thomasfredericks/Bounce2
  */
+#define BOUNCE_WITH_PROMPT_DETECTION
+#include <Bounce2.h>
 #include <Joystick.h>
 Joystick_ Joystick(JOYSTICK_DEFAULT_REPORT_ID,JOYSTICK_TYPE_GAMEPAD, 10, 0,
  true, true, false, false, false, false, false, false, false, false, false);
 
 boolean hidMode, state[2]={false}, set[4]={false};
 int encL=0, encR=0;
-const int PULSE = 600;  //number of pulses per revolution of encoders 
+const int PULSE = 360;  //number of pulses per revolution of encoders 
 byte EncPins[]    = {0, 1, 2, 3};
-byte SinglePins[] = {4, 6, 8, 10,12,18,20,22,14,16};
-byte ButtonPins[] = {5, 7, 9, 11,13,19,21,23,15,17};
-unsigned long ReactiveTimeoutMax = 1000;  //number of cycles before HID falls back to reactive
+byte SinglePins[] = {19, 18, 21, 22, 23, 11, 15, 15, 20, 15};
+byte ButtonPins[] = {5, 6, 7, 8, 9, 10, 14, 14, 4, 14};
+unsigned long ReactiveTimeoutMax = 3000;  //number of cycles before HID falls back to reactive
 
-/* pin assignments
- * VOL-L Green to pin 0 and White to pin 1
- * VOL-R Green to pin 2 and White to pin 3
- * current pin layout
- *  SinglePins {4,6,8,10,12,18,20,22,14,16} = LED 1 to 10
- *    connect pin to resistor and then + termnial of LED
- *    connect ground to - terminal of LED
- *  ButtonPins {5,7,9,11,13,19,21,23,15,17} = Button input 1 to 10
- *    connect button pin to ground to trigger button press
- *  Light mode detection by read first button while connecting usb 
- *   hold    = false = reactive lighting 
- *   release = true  = HID lighting with reactive fallback
- */
- 
-byte ButtonCount = sizeof(ButtonPins) / sizeof(ButtonPins[0]);
-byte SingleCount = sizeof(SinglePins) / sizeof(SinglePins[0]);
-byte EncPinCount = sizeof(EncPins) / sizeof(EncPins[0]);
+
+const byte ButtonCount = sizeof(ButtonPins) / sizeof(ButtonPins[0]);
+const byte SingleCount = sizeof(SinglePins) / sizeof(SinglePins[0]);
+const byte EncPinCount = sizeof(EncPins) / sizeof(EncPins[0]);
+Bounce buttons[ButtonCount];
 unsigned long ReactiveTimeoutCount = ReactiveTimeoutMax;
 
-int ReportDelay = 700;
+int ReportDelay = 990;
 unsigned long ReportRate ;
 
 void setup() {
@@ -48,9 +40,11 @@ void setup() {
   Joystick.setXAxisRange(-PULSE/2, PULSE/2-1);
   Joystick.setYAxisRange(-PULSE/2, PULSE/2-1);
   
-  // setup I/O for pins
-  for(int i=0;i<ButtonCount;i++) {
-    pinMode(ButtonPins[i],INPUT_PULLUP);
+  // setup I/O for pins 
+  for(int i=0;i<ButtonCount;i++) {  
+    buttons[i] = Bounce();
+    buttons[i].attach(ButtonPins[i], INPUT_PULLUP);
+    buttons[i].interval(5); //Debounce time in milliseconds
   }
   for(int i=0;i<SingleCount;i++) {
     pinMode(SinglePins[i],OUTPUT);
