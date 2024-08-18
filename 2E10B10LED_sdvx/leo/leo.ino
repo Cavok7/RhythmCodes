@@ -31,7 +31,7 @@ const byte EncPinCount = sizeof(EncPins) / sizeof(EncPins[0]);
 Bounce buttons[ButtonCount];
 unsigned long ReactiveTimeoutCount = ReactiveTimeoutMax;
 
-int ReportDelay = 990;
+int ReportDelay = 500;
 unsigned long ReportRate ;
 
 void setup() {
@@ -44,7 +44,7 @@ void setup() {
   for(int i=0;i<ButtonCount;i++) {  
     buttons[i] = Bounce();
     buttons[i].attach(ButtonPins[i], INPUT_PULLUP);
-    buttons[i].interval(5); //Debounce time in milliseconds
+    buttons[i].interval(4); //Debounce time in milliseconds
   }
   for(int i=0;i<SingleCount;i++) {
     pinMode(SinglePins[i],OUTPUT);
